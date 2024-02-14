@@ -1,0 +1,26 @@
+---
+
+stages:
+  - deploy
+
+deploy_app1:
+  environment: develop
+  stage: deploy
+  only: 
+    - master
+  tags:
+    - airbnb-clone-system-runner
+  variables:
+    APP_FOLDER: "/data/www/airbnb-clone-system/"
+    APP_NAME: "app1"
+  before_script:
+    - cd ${APP_FOLDER}
+  script:
+    - git fetch && git reset --hard ${CI_BUILD_REF}
+    - echo "Deploy app ${APP_NAME} with compose file ${COMPOSE_FILE}"
+    - cd ${APP_FOLDER}/${APP_NAME}
+    # Create file .env if not exist
+    - if [[ ! -f '.env' ]]; then touch .env; fi;
+    - docker-compose build
+    - docker-compose up -d
+  when: on_success

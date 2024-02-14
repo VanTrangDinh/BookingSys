@@ -1,0 +1,309 @@
+# version: '2.2'
+# services:
+#   es01:
+#     image: docker.elastic.co/elasticsearch/elasticsearch:$ES_VERSION
+#     container_name: es01
+#     environment:
+#       - discovery.type=single-node
+#       - node.name=es01
+#       # - cluster.name=es-docker-cluster
+#       # - discovery.seed_hosts=es02,es03
+#       # - cluster.initial_master_nodes=es01,es02,es03
+#       - bootstrap.memory_lock=true
+#       - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+#       - xpack.license.self_generated.type=basic
+#       - xpack.security.enabled=true
+#       - xpack.security.http.ssl.enabled=true
+#       - xpack.security.http.ssl.key=$CERTS_DIR/es01/es01.key
+#       - xpack.security.http.ssl.certificate_authorities=$CERTS_DIR/ca/ca.crt
+#       - xpack.security.http.ssl.certificate=$CERTS_DIR/es01/es01.crt
+#       - xpack.security.transport.ssl.enabled=true
+#       - xpack.security.transport.ssl.verification_mode=certificate
+#       - xpack.security.transport.ssl.certificate_authorities=$CERTS_DIR/ca/ca.crt
+#       - xpack.security.transport.ssl.certificate=$CERTS_DIR/es01/es01.crt
+#       - xpack.security.transport.ssl.key=$CERTS_DIR/es01/es01.key
+#     ulimits:
+#       memlock:
+#         soft: -1
+#         hard: -1
+#     volumes:
+#       - data01:/usr/share/elasticsearch/data
+#       - certs:$CERTS_DIR
+#     ports:
+#       - 9200:9200
+
+#   es02:
+#     image: docker.elastic.co/elasticsearch/elasticsearch:$ES_VERSION
+#     container_name: es02
+#     environment:
+#       - discovery.type=single-node
+#       - node.name=es02
+#       # - cluster.name=es-docker-cluster
+#       # - discovery.seed_hosts=es01,es03
+#       # - cluster.initial_master_nodes=es01,es02,es03
+#       - bootstrap.memory_lock=true
+#       - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+#       - xpack.license.self_generated.type=basic
+#       - xpack.security.enabled=true
+#       - xpack.security.http.ssl.enabled=true
+#       - xpack.security.http.ssl.key=$CERTS_DIR/es02/es02.key
+#       - xpack.security.http.ssl.certificate_authorities=$CERTS_DIR/ca/ca.crt
+#       - xpack.security.http.ssl.certificate=$CERTS_DIR/es02/es02.crt
+#       - xpack.security.transport.ssl.enabled=true
+#       - xpack.security.transport.ssl.verification_mode=certificate
+#       - xpack.security.transport.ssl.certificate_authorities=$CERTS_DIR/ca/ca.crt
+#       - xpack.security.transport.ssl.certificate=$CERTS_DIR/es02/es02.crt
+#       - xpack.security.transport.ssl.key=$CERTS_DIR/es02/es02.key
+#     ulimits:
+#       memlock:
+#         soft: -1
+#         hard: -1
+#     volumes:
+#       - data02:/usr/share/elasticsearch/data
+#       - certs:$CERTS_DIR
+
+#   es03:
+#     image: docker.elastic.co/elasticsearch/elasticsearch:$ES_VERSION
+#     container_name: es03
+#     environment:
+#       - discovery.type=single-node
+#       - node.name=es03
+#       # - cluster.name=es-docker-cluster
+#       # - discovery.seed_hosts=es01,es02
+#       # - cluster.initial_master_nodes=es01,es02,es03
+#       - bootstrap.memory_lock=true
+#       - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+#       - xpack.license.self_generated.type=basic
+#       - xpack.security.enabled=true
+#       - xpack.security.http.ssl.enabled=true
+#       - xpack.security.http.ssl.key=$CERTS_DIR/es03/es03.key
+#       - xpack.security.http.ssl.certificate_authorities=$CERTS_DIR/ca/ca.crt
+#       - xpack.security.http.ssl.certificate=$CERTS_DIR/es03/es03.crt
+#       - xpack.security.transport.ssl.enabled=true
+#       - xpack.security.transport.ssl.verification_mode=certificate
+#       - xpack.security.transport.ssl.certificate_authorities=$CERTS_DIR/ca/ca.crt
+#       - xpack.security.transport.ssl.certificate=$CERTS_DIR/es03/es03.crt
+#       - xpack.security.transport.ssl.key=$CERTS_DIR/es03/es03.key
+#     ulimits:
+#       memlock:
+#         soft: -1
+#         hard: -1
+#     volumes:
+#       - data03:/usr/share/elasticsearch/data
+#       - certs:$CERTS_DIR
+
+#   monstache:
+#     image: rwynn/monstache:6.7.2
+#     container_name: oc_monstache
+#     working_dir: /app/monstache
+#     command: -f ./config.toml
+#     environment:
+#       - MONSTACHE_LOG_DIR=logs
+#       - MONSTACHE_MONGO_URL=${DB_URI}
+#       - MONSTACHE_ES_URLS=${ELASTIC_URL}
+#       - MONSTACHE_ES_USER=${ELASTIC_USERNAME}
+#       - MONSTACHE_ES_PASS=${ELASTIC_PASSWORD}
+#     volumes:
+#       - ../monstache:/app/monstache
+#     ports:
+#       - '8080:8080'
+#     restart: unless-stopped
+
+# volumes:
+#   data01:
+#     driver: local
+#   data02:
+#     driver: local
+#   data03:
+#     driver: local
+#   certs:
+#     driver: local
+version: '3'
+
+services:
+  node-app:
+    build: .
+    image: node-app
+    environment:
+      - MONGODB_URL=mmongodb+srv://johnsmith2001it:twFDF2QLX9uQ5fbt@cluster0.troet70.mongodb.net/test
+      # - MONGODB_URL=mongodb://localhost:27017/Airbnb
+      # -MONGODB_URL=mongodb://mongodb:27017/Airbnb
+    ports:
+      - '3000:3000'
+    depends_on:
+      - mongodb
+    volumes:
+      - .:/usr/src/node-app
+    networks:
+      - node-network
+
+  mongodb:
+    image: mongo:4.2.1-bionic
+    ports:
+      - '27018:27017'
+    volumes:
+      - dbdata:/data/db
+    networks:
+      - node-network
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
+    container_name: elasticsearch
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=datasearch
+      - bootstrap.memory_lock=true
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+      - cluster.initial_master_nodes=elasticsearch
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - '9200:9200'
+    networks:
+      - node-network
+    volumes:
+      - elasticdata:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.0.1
+    ports:
+      - '5601:5601'
+    networks:
+      - node-network
+
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:7.15.1
+  #   volumes:
+  #     - ./logstash:/usr/share/logstash/pipeline
+  #   environment:
+  #     - LS_JAVA_OPTS=-Xmx1g -Xms1g
+  #   ports:
+  #     - 9600:9600
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - node-network
+
+volumes:
+  pipeline:
+  dbdata:
+  elasticdata:
+
+networks:
+  node-network:
+    driver: bridge
+# version: '3'
+
+# services:
+#   node-app:
+#     build: .
+#     image: node-app
+#     environment:
+#       - MONGODB_URL=mmongodb+srv://johnsmith2001it:twFDF2QLX9uQ5fbt@cluster0.troet70.mongodb.net/test
+#     ports:
+#       - '3000:3000'
+#     depends_on:
+#       - mongodb
+#       - logstash
+#     volumes:
+#       - .:/usr/src/node-app
+#     networks:
+#       - node-network
+
+#   mongodb:
+#     image: mongo:4.2.1-bionic
+#     ports:
+#       - '27017:27017'
+#     volumes:
+#       - dbdata:/data/db
+#     networks:
+#       - node-network
+
+#   elasticsearch:
+#     image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
+#     container_name: elasticsearch
+#     environment:
+#       - node.name=elasticsearch
+#       - cluster.name=datasearch
+#       - bootstrap.memory_lock=true
+#       - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+#       - cluster.initial_master_nodes=elasticsearch
+#     ulimits:
+#       memlock:
+#         soft: -1
+#         hard: -1
+#     ports:
+#       - '9200:9200'
+#     networks:
+#       - node-network
+#     volumes:
+#       - elasticdata:/usr/share/elasticsearch/data
+
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:7.0.1
+  #   ports:
+  #     - '5601:5601'
+  #   networks:
+  #     - node-network
+
+#   logstash:
+#     image: docker.elastic.co/logstash/logstash:7.0.1
+#     volumes:
+#       - ./logstash/pipeline:/usr/share/logstash/pipeline/
+#     environment:
+#       - 'XPACK_MONITORING_ENABLED=false'
+#     ports:
+#       - '5044:5044'
+#     depends_on:
+#       - elasticsearch
+#       - mongodb
+#     networks:
+#       - node-network
+
+#   filebeat:
+#     image: docker.elastic.co/beats/filebeat:7.0.1
+#     user: root
+#     volumes:
+#       - /var/run/docker.sock:/var/run/docker.sock
+#       - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+#     depends_on:
+#       - logstash
+#     networks:
+#       - node-network
+
+# volumes:
+#   dbdata:
+#   elasticdata:
+
+# networks:
+#   node-network:
+#     driver: bridge
+# # Logstash service
+#     logstash:
+#         container_name: logstash-01
+#         volumes:
+#             - /Users/theara/project/docker compose/es kb/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+#             - /Users/theara/project/docker compose/es kb/logstash.yaml:/usr/share/logstash/config/logstash.yml:ro
+#         image: 'docker.elastic.co/logstash/logstash:7.16.3'
+#         depends_on:
+#              kibana-01:
+#                condition: service_healthy
+#         networks:
+#             - elastic
+
+# # Filebeat service
+#     filebeat:
+#         user: root
+#         container_name: filebeat-01
+#         command: --strict.perms=false
+#         volumes:
+#             - /Users/theara/project/docker compose/es kb/filebeat.docker.yaml:/usr/share/filebeat/filebeat.yml:ro
+#             - /var/lib/docker/containers:/var/lib/docker/containers:ro
+#             - /var/run/docker.sock:/var/run/docker.sock:ro
+#         image: 'docker.elastic.co/beats/filebeat:7.16.3'
+#         depends_on:
+#              kibana-01:
+#                condition: service_healthy
+#         networks:
+#             - elastic

@@ -1,0 +1,34 @@
+# Dependencies
+node_modules
+
+# yarn error logs
+yarn-error.log
+
+# Environment varibales
+
+!.env*.example
+
+# Code coverage
+coverage
+tests/requests
+
+app1
+bin
+data
+filebeat
+go
+gocache
+leetcode
+logstash
+monstache
+pipeline
+
+.vscode
+
+.env
+create-certs.yml
+instances.yml
+
+yarn-error.log
+
+Dockerfile-multi-stage
